@@ -16,9 +16,8 @@ import org.springframework.web.method.support.ModelAndViewContainer
  */
 class AuthIdArgumentResolver : HandlerMethodArgumentResolver {
 
-    override fun supportsParameter(parameter: MethodParameter): Boolean {
-        return parameter.hasParameterAnnotation(AuthId::class.java)
-    }
+    override fun supportsParameter(parameter: MethodParameter): Boolean =
+        parameter.hasParameterAnnotation(AuthId::class.java)
 
     override fun resolveArgument(
         parameter: MethodParameter,
