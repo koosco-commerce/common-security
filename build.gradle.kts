@@ -15,6 +15,8 @@ java {
     toolchain {
         languageVersion = JavaLanguageVersion.of(21)
     }
+    withSourcesJar()
+    withJavadocJar()
 }
 
 repositories {
@@ -94,8 +96,8 @@ publishing {
             from(components["java"])
 
             pom {
-                name.set("common-core")
-                description.set("Common core library")
+                name.set("common-security")
+                description.set("Common security library")
                 url.set("https://github.com/koosco-commerce/common-security")
 
                 licenses {
