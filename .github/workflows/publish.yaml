@@ -16,6 +16,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
@@ -26,10 +28,34 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x ./gradlew
 
+      - name: Extract current version
+        id: version
+        run: |
+          CURRENT_VERSION=$(grep "^version = " build.gradle.kts | cut -d '"' -f 2)
+          echo "current=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Extract previous version
+        id: prev_version
+        run: |
+          PREV_VERSION=$(git show HEAD~1:build.gradle.kts 2>/dev/null | grep "^version = " | cut -d '"' -f 2 || echo "none")
+          echo "previous=$PREV_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Check version change
+        id: check
+        run: |
+          if [ "${{ steps.version.outputs.current }}" != "${{ steps.prev_version.outputs.previous }}" ]; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "✅ Version changed: ${{ steps.prev_version.outputs.previous }} -> ${{ steps.version.outputs.current }}"
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "⏭️  Version unchanged: ${{ steps.version.outputs.current }} (skipping publish)"
+          fi
+
       - name: Build
         run: ./gradlew clean build --no-daemon
 
       - name: Publish package to GitHub Packages
+        if: steps.check.outputs.changed == 'true'
         env:
           GH_ACTOR: ${{ github.actor }}
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
